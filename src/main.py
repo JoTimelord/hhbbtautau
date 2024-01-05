@@ -22,4 +22,4 @@ if rs.TEST_MODE:
 
 del data
 
-lineup_jobs(fileset, rs, 1)
+lineup_jobs(fileset, rs, 2)

@@ -18,16 +18,17 @@ def dasgo_query(query, json=False):
 
     return stdout.decode().splitlines()
 
-def xrootd_format(fpath):
+def xrootd_format(fpath, prefix):
     """Ensure that the file path is file:/* or xrootd"""
+    file_prefix = "root://cmsxrootd.fnal.gov/" if prefix=="local" else "root://cms-xrd-global.cern.ch/"
     if fpath.startswith("/store/"):
-        return f"root://cmsxrootd.fnal.gov/{fpath}"
+        return f"{file_prefix}{fpath}"
     elif fpath.startswith("file:") or fpath.startswith("root:"):
         return fpath
     else:
         return f"file://{fpath}"
 
-def query_MCsamples(dspath, outputfn, must_include=None):
+def query_MCsamples(dspath, outputfn, must_include=None, prefix='local'):
     """ Query xrootd to find all filepaths to a given set of dataset names.
     :param dspath: path to json file containing dataset names
     :type dspath: string
@@ -53,7 +54,7 @@ def query_MCsamples(dspath, outputfn, must_include=None):
             file_query_list = list(map(query_file, dslist))
             to_flatten = list(map(dasgo_query, file_query_list))
             filelist = [item for sublist in to_flatten for item in sublist]
-            filelist_xrootd = list(map(xrootd_format, filelist))
+            filelist_xrootd = list(map(xrootd_format, filelist, prefix))
             complete_dict[process].update({name: filelist_xrootd})
 
     with open(outputfn, 'w') as jsonfile:
@@ -94,7 +95,7 @@ def divide_samples(inputfn, outputfn, dict_size=5):
         json.dump(complete_dict, jsonfile)
 
 if __name__ == "__main__":
-    query_MCsamples("MCsamplepath.json", "completepath.json", "Run3Summer22EE")
+    query_MCsamples("MCsamplepath.json", "completepath.json", "Run3Summer22EE", prefix='global')
     divide_samples("completepath.json", "inputfile.json", 5)
 
 
